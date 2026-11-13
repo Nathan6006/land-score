@@ -22,8 +22,8 @@ study_area:
   buffer_m: 1000
 
 years:
-  landcover: [1985, 2024]   # Annual NLCD Collection 1
-  canopy: [1985, 2023]      # USFS TCC "Science" annual product
+  landcover: [1985, 2024]   # Annual NLCD Collection 1.1 (C1V1)
+  canopy: [1985, 2025]      # USFS TCC "Science" annual product, v2025-6
 
 labels:
   # Annual NLCD classes treated as farmed: 81 pasture/hay, 82 cultivated crops.
@@ -35,7 +35,7 @@ labels:
   forest_classes: [41, 42, 43]
   # Abandonment year A = first year with no farming after a farmed run.
   # A must fall in this window (inclusive).
-  abandon_window: [1990, 2005]
+  abandon_window: [1988, 2009]
   # Years farmed in a row just before A.
   min_farm_years: 3
   # Years not farmed in a row starting at A (filters out crop/pasture rotation noise).
@@ -46,7 +46,7 @@ labels:
   # Canopy at year A-1 must be at most this (the pixel really was open field).
   max_start_canopy: 10
   # Binary target: canopy at outcome year >= this percent.
-  binary_threshold: 30
+  binary_threshold: 40
 
 sampling:
   n_pixels: 200000

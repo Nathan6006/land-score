@@ -1,0 +1,25 @@
+common_name,scientific_name,drainage_min,drainage_max,ph_min,ph_max,shade_tolerance,deer_browse,notes
+Red maple,Acer rubrum,1,7,4.5,7.5,tolerant,high,Very adaptable; wet to dry sites
+Silver maple,Acer saccharinum,4,7,5.0,8.0,intermediate,moderate,Floodplains and wet ground; weak wood near buildings
+Sugar maple,Acer saccharum,3,4,5.5,7.5,very tolerant,high,Needs well-drained fertile soil; not for wet or compacted sites
+Swamp white oak,Quercus bicolor,4,6,4.5,7.0,intermediate,high,Good for seasonally wet clay soils
+Pin oak,Quercus palustris,5,6,5.0,6.5,intolerant,high,Wet flats; yellows (chlorosis) on alkaline soil
+Northern red oak,Quercus rubra,3,4,4.5,7.0,intermediate,high,Well-drained uplands
+White oak,Quercus alba,2,4,4.5,7.0,intermediate,high,Well-drained uplands; slow early growth
+Bur oak,Quercus macrocarpa,3,5,5.0,8.0,intolerant,moderate,Tolerates drought and heavy clay
+Black cherry,Prunus serotina,2,4,5.0,7.5,intolerant,low,Fast on old fields; leaves toxic to livestock
+Tuliptree,Liriodendron tulipifera,3,4,5.0,7.0,intolerant,moderate,Deep moist well-drained soils; fast growing
+American sycamore,Platanus occidentalis,4,6,5.0,8.0,intermediate,moderate,Stream banks and bottomlands
+Eastern cottonwood,Populus deltoides,3,6,5.5,8.0,very intolerant,moderate,Very fast; open moist sites
+Black walnut,Juglans nigra,3,4,6.0,8.0,intolerant,low,Deep fertile well-drained soil; allelopathic
+Shagbark hickory,Carya ovata,3,5,5.0,7.5,intermediate,moderate,Slow; upland and bottomland
+Bitternut hickory,Carya cordiformis,3,5,5.0,7.5,intermediate,moderate,Moist slopes and bottoms
+River birch,Betula nigra,4,6,4.0,6.5,intolerant,low,Wet acidic soils; avoid alkaline sites
+Black gum,Nyssa sylvatica,2,7,4.5,7.0,tolerant,moderate,Wet or dry; slow
+Eastern white pine,Pinus strobus,1,4,4.5,6.5,intermediate,moderate,Sandy or well-drained soils
+American basswood,Tilia americana,3,4,5.5,7.5,tolerant,high,Moist fertile soils
+Hackberry,Celtis occidentalis,3,6,6.0,8.0,intermediate,moderate,Tough; tolerates alkaline and compacted soil
+Black willow,Salix nigra,5,7,5.0,8.0,very intolerant,moderate,Saturated soils and stream edges; live-stake option
+Eastern hemlock,Tsuga canadensis,3,4,4.5,6.5,very tolerant,high,Cool shaded ravines; not for open fields
+Eastern redbud,Cercis canadensis,3,4,6.0,8.0,tolerant,moderate,Small understory tree
+Hophornbeam,Ostrya virginiana,2,4,5.0,7.5,very tolerant,low,Small understory tree on dry slopes
