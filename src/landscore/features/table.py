@@ -7,6 +7,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import rasterio
+from scipy import ndimage
 
 from landscore.config import label_config, load_config
 from landscore.data import layers as L
@@ -78,6 +79,11 @@ def build_table(county: str, static: dict[str, np.ndarray] | None = None) -> pd.
             "label_binary": lab["label_binary"][rows, cols].astype(int),
         }
     )
+    # Diagnostic only (not a feature): size of the connected patch of labeled pixels.
+    # Single pixels and thin strips along a field edge are more likely mapping noise.
+    patches, _ = ndimage.label(lab["status"] == Status.LABELED, structure=np.ones((3, 3)))
+    sizes = np.bincount(patches.ravel())
+    df["patch_px"] = sizes[patches[rows, cols]]
     for name, arr in static.items():
         df[name] = arr[rows, cols]
     # Landscape features: one land cover map per start year, A-1.

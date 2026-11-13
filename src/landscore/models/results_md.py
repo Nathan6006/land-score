@@ -45,7 +45,26 @@ def verdict(res: pd.DataFrame, headline: str) -> str:
     )
 
 
-def write_results(df, res, headline, best, figs, path: Path) -> None:
+def _per_county(pc, best) -> str:
+    if pc is None:
+        return ""
+    lines = [
+        f"## Each county held out in turn ({best})",
+        "",
+        "| held-out county | labeled pixels | positive rate | AUC | Brier skill |",
+        "|---|---|---|---|---|",
+    ]
+    for r in pc.itertuples(index=False):
+        lines.append(f"| {r[0]} | {r[1]:,} | {r[2]:.1%} | {r[3]:.3f} | {r[4]:.3f} |")
+    lines.append("")
+    lines.append(
+        "Brier skill below zero means the probabilities were worse than always guessing that "
+        "county's own average, usually because its positive rate differs from the training counties."
+    )
+    return "\n".join(lines) + "\n"
+
+
+def write_results(df, res, headline, best, figs, path: Path, per_county=None) -> None:
     cfg = load_config()
     lab = cfg["labels"]
     counties = ", ".join(sorted(df["county"].unique()))
@@ -83,6 +102,7 @@ base rate, 1 = perfect.
 
 ![model comparison]({figs.get("comparison", "")})
 
+{_per_county(per_county, best)}
 ## Regression target (canopy percent)
 
 {_table(res, "regression", ["r2", "spearman"])}

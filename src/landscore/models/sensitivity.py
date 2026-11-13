@@ -1,0 +1,153 @@
+"""`landscore sensitivity`: how much do results depend on label choices?
+
+Part A recounts labels for other outcome lags and canopy thresholds (no retraining).
+Part B retrains the two main models on subsets that drop likely edge noise (small patches,
+pixels touching forest) and reports the headline-holdout AUC next to the random-split AUC.
+Writes docs/SENSITIVITY.md.
+"""
+
+from __future__ import annotations
+
+import argparse
+import dataclasses
+from datetime import date
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import rasterio
+
+from landscore.config import REPO_ROOT, label_config, load_config
+from landscore.data import layers as L
+from landscore.labels.abandonment import build_labels
+from landscore.models import evaluate as ev
+from landscore.models.train import load_tables, schemes
+from landscore.models.zoo import fresh, model_specs, predict
+
+LAGS = (10, 15, 20)
+THRESHOLDS = (20, 30, 40, 50)
+
+
+def label_counts(counties: list[str]) -> pd.DataFrame:
+    base = label_config()
+    rows = []
+    for county in counties:
+        raw = L.raw_dir(county)
+        m = L.county_mask(county)
+        with rasterio.open(raw / "landcover.tif") as s:
+            lc = s.read()[:, m]
+        with rasterio.open(raw / "canopy.tif") as s:
+            can = s.read()[:, m]
+        ly, cy = L.year_bands(raw / "landcover.tif"), L.year_bands(raw / "canopy.tif")
+        for lag in LAGS:
+            last_a = min(ly[-1], cy[-1]) - lag
+            cfg = dataclasses.replace(
+                base, outcome_lag=lag, abandon_window=(base.abandon_window[0], min(last_a, 2014))
+            )
+            r = build_labels(lc, ly, can, cy, cfg)
+            out = r.canopy_outcome[r.labeled]
+            row = {
+                "county": county,
+                "lag": lag,
+                "window_end": cfg.abandon_window[1],
+                "labeled": int(r.labeled.sum()),
+                "median_canopy": float(np.median(out)) if out.size else np.nan,
+            }
+            for t in THRESHOLDS:
+                row[f"pos_rate_{t}"] = float((out >= t).mean()) if out.size else np.nan
+            rows.append(row)
+    df = pd.DataFrame(rows)
+    tot = df.groupby("lag").agg(labeled=("labeled", "sum"), window_end=("window_end", "first"))
+    for t in THRESHOLDS:
+        tot[f"pos_rate_{t}"] = df.groupby("lag").apply(
+            lambda g, t=t: np.average(g[f"pos_rate_{t}"], weights=g["labeled"]),
+            include_groups=False,
+        )
+    return tot.reset_index()
+
+
+def subset_models(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    seed = cfg["sampling"]["seed"]
+    subsets = {
+        "all labeled pixels": np.ones(len(df), bool),
+        "patch >= 4 px": df["patch_px"] >= 4,
+        "patch >= 9 px": df["patch_px"] >= 9,
+        "not touching forest (dist > 30 m)": df["dist_forest_m"] > 30,
+        "patch >= 4 px and dist > 30 m": (df["patch_px"] >= 4) & (df["dist_forest_m"] > 30),
+    }
+    rows = []
+    for name, mask in subsets.items():
+        d = df[np.asarray(mask)].reset_index(drop=True)
+        if len(d) < 500 or d["label_binary"].nunique() < 2:
+            rows.append({"subset": name, "n": len(d)})
+            continue
+        sch = schemes(d, cfg)
+        head = "county" if "county" in sch else "block"
+        row = {
+            "subset": name,
+            "n": len(d),
+            "positive_rate": d["label_binary"].mean(),
+            "holdout": head,
+        }
+        for spec in model_specs(list(d.columns)):
+            if spec.name not in ("logistic_all", "random_forest", "gradient_boosting"):
+                continue
+            X, y = d[list(spec.features)].to_numpy(float), d["label_binary"].to_numpy()
+            for sname in (head, "random"):
+                pred = np.full(len(d), np.nan)
+                for tr, te in sch[sname]:
+                    pred[te] = predict(
+                        fresh(spec, "binary", seed).fit(X[tr], y[tr]), X[te], "binary"
+                    )
+                row[f"{spec.name} AUC ({sname})"] = ev.binary_metrics(y, pred)["auc"]
+        rows.append(row)
+        print(row, flush=True)
+    return pd.DataFrame(rows)
+
+
+def _md(df: pd.DataFrame) -> str:
+    head = "| " + " | ".join(map(str, df.columns)) + " |"
+    sep = "|---" * len(df.columns) + "|"
+    body = [
+        "| " + " | ".join("" if pd.isna(v) else str(v) for v in r) + " |" for r in df.to_numpy()
+    ]
+    return "\n".join([head, sep, *body])
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="landscore sensitivity")
+    ap.add_argument("--docs-dir", type=Path, default=REPO_ROOT / "docs")
+    a = ap.parse_args(argv)
+    cfg = load_config()
+    df = load_tables()
+    df = df[df["label_binary"] >= 0].reset_index(drop=True)
+    counties = sorted(df["county"].unique())
+    counts = label_counts(counties)
+    models = subset_models(df, cfg)
+    text = f"""# Sensitivity checks
+
+Generated by `uv run landscore sensitivity` on {date.today().isoformat()}. Counties: {", ".join(counties)}.
+
+## A. Label counts for other lags and thresholds
+
+Lag = years between a field leaving farming and the canopy measurement. The abandonment
+window ends where the data run out for that lag. `pos_rate_T` = share of labeled pixels with
+canopy >= T percent.
+
+{_md(counts.round(3))}
+
+## B. Do results survive dropping likely edge noise?
+
+Small patches and pixels touching forest may be mapping noise along field edges, not real
+abandonment. Each row retrains on a subset. Holdout AUC is the honest number; random-split AUC
+is shown for contrast.
+
+{_md(models.round(3))}
+"""
+    (a.docs_dir / "SENSITIVITY.md").write_text(text, encoding="utf-8")
+    print(text)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

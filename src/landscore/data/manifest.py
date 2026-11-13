@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import time
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -52,10 +55,31 @@ def record(path: Path, sources: list[str], **meta) -> dict:
         "bytes": path.stat().st_size,
         **meta,
     }
-    m = load()
-    m["files"][rel(path)] = entry
-    save(m)
+    with _lock():
+        m = load()
+        m["files"][rel(path)] = entry
+        save(m)
     return entry
+
+
+@contextmanager
+def _lock(timeout: float = 60.0):
+    """Cross-process lock so parallel fetches do not lose manifest entries."""
+    lock = manifest_path().with_suffix(".lock")
+    start = time.time()
+    while True:
+        try:
+            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            break
+        except FileExistsError:
+            if time.time() - start > timeout:  # stale lock from a crashed run
+                lock.unlink(missing_ok=True)
+            time.sleep(0.05)
+    try:
+        yield
+    finally:
+        os.close(fd)
+        lock.unlink(missing_ok=True)
 
 
 def is_current(path: Path) -> bool:

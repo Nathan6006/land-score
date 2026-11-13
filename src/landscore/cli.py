@@ -14,6 +14,11 @@ COMMANDS = {
     "labels": ("landscore.labels.build", "main", "Build abandonment labels for counties"),
     "features": ("landscore.features.table", "main", "Build the sampled training table"),
     "train": ("landscore.models.train", "main", "Train baselines and models, write results"),
+    "sensitivity": (
+        "landscore.models.sensitivity",
+        "main",
+        "Label and edge-noise sensitivity checks",
+    ),
     "report": ("landscore.report.plot_report", "main", "Score a GeoJSON plot and write a report"),
 }
 

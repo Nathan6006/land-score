@@ -119,7 +119,18 @@ def main(argv: list[str] | None = None) -> int:
     figs = write_figures(df, res, oof, headline, best, seed, a.docs_dir, shap=not a.no_shap)
     from landscore.models.results_md import write_results
 
-    write_results(df, res, headline, best, figs, a.docs_dir / "RESULTS.md")
+    per_county = None
+    if headline == "county":
+        y, pr = df["label_binary"].to_numpy(), oof[("binary", "county", best)]
+        per_county = pd.DataFrame(
+            [
+                {"held-out county": c, **ev.binary_metrics(y[m], pr[m])}
+                for c in sorted(df["county"].unique())
+                for m in [(df["county"] == c).to_numpy()]
+            ]
+        )[["held-out county", "n", "base_rate", "auc", "brier_skill"]]
+        per_county.to_csv(out / "per_county.csv", index=False)
+    write_results(df, res, headline, best, figs, a.docs_dir / "RESULTS.md", per_county)
     (out / "summary.json").write_text(
         json.dumps({"headline": headline, "best": best, "model": str(model_path)}, indent=2)
     )

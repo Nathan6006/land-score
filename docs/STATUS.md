@@ -2,6 +2,33 @@
 
 Newest session at the top. Update at the end of every work session.
 
+## 2026-11-13 — Claude Code session 2 (Nathan's machine)
+
+**Works now**
+- All nine counties fetched (0.9 GB raw, 1.5 GB with derived layers), labeled, and modeled.
+- 49,563 labeled pixels, 47.9% positive (canopy >= 40% after 15 years).
+- Leave-one-county-out AUC: random forest 0.671, gradient boosting 0.659, logistic 0.646,
+  distance to forest 0.557, seedling mortality rating 0.493. Random split: 0.747 / 0.756.
+  Every held-out county lands between 0.65 and 0.70. See `docs/RESULTS.md`.
+- `landscore sensitivity` writes `docs/SENSITIVITY.md` (lag/threshold counts, edge-noise subsets).
+- `docs/METHODS.md` written. Quick-look and label maps for Geauga checked by eye: fine.
+
+**Not done / not verified**
+- Quick-look maps for the other eight counties have not been generated or looked at.
+- Minimum patch size for labels is an open decision (see DECISIONS, last entry).
+- Species table still a draft (issue #21). Lidar check not built (issue #17).
+- Human checks (issues #25, #26) not started.
+- `pipeline.yml` untested (needs to be on `main` first).
+
+**Blocked**
+- PRs #27 and the phase-6 PR are open; Claude is not permitted to merge. Merge #27 first.
+
+**Next**
+1. Merge the two PRs in order.
+2. Decide on the minimum patch size (look at a sample of single-pixel labels on imagery).
+3. Issue #21: forester review of the species table; issue #25: blind ranking protocol.
+4. Issue #17: lidar canopy-height check.
+
 ## 2026-11-13 — Claude Code session 1 (Nathan's machine)
 
 **Works now (Geauga pilot, end to end)**
