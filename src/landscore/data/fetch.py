@@ -239,7 +239,7 @@ def fetch_dem(county: str, g: Grid, force: bool = False) -> None:
         url = S.DEM_TILE.format(tile=tile)
 
         def read(url=url):
-            part = np.full(dem.shape, np.nan, np.float32)
+            part = np.full((g.height, g.width), np.nan, np.float32)
             with rasterio.Env(**COG_ENV), rasterio.open(url) as src:
                 reproject(
                     rasterio.band(src, 1),
@@ -317,7 +317,7 @@ def fetch_soil(county: str, g: Grid, force: bool = False) -> None:
     for it in items:
 
         def read(it=it):
-            part = np.zeros(mukey.shape, np.int32)
+            part = np.zeros((g.height, g.width), np.int32)
             with rasterio.Env(**COG_ENV), rasterio.open(it.assets["mukey"].href) as src:
                 reproject(
                     rasterio.band(src, 1),
