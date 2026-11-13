@@ -38,7 +38,9 @@ def block_splits(x, y, block_m: float, n_folds: int, seed: int) -> Iterator[Spli
     fold_of = dict(zip(uniq, rng.permutation(len(uniq)) % n_folds, strict=True))
     folds = np.array([fold_of[i] for i in ids])
     for k in range(n_folds):
-        yield np.flatnonzero(folds != k), np.flatnonzero(folds == k)
+        te = np.flatnonzero(folds == k)
+        if te.size and te.size < len(ids):  # fewer blocks than folds: skip empty folds
+            yield np.flatnonzero(folds != k), te
 
 
 def county_splits(county: np.ndarray) -> Iterator[Split]:
