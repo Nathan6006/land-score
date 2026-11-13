@@ -57,7 +57,7 @@ FEATURES: tuple[Feature, ...] = (
         "seedling_mortality",
         "soil",
         "static",
-        "Survey seedling mortality rating, 0 low, 1 moderate, 2 high",
+        "Survey potential seedling mortality rating, 0 (low) to 1 (high)",
     ),
     Feature(
         "site_index",

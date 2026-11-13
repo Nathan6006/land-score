@@ -22,8 +22,8 @@ study_area:
   buffer_m: 1000
 
 years:
-  landcover: [1985, 2024]   # Annual NLCD Collection 1
-  canopy: [1985, 2023]      # USFS TCC "Science" annual product
+  landcover: [1985, 2024]   # Annual NLCD Collection 1.1 (C1V1)
+  canopy: [1985, 2025]      # USFS TCC "Science" annual product, v2025-6
 
 labels:
   # Annual NLCD classes treated as farmed: 81 pasture/hay, 82 cultivated crops.
