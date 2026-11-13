@@ -1,6 +1,6 @@
 # Data and outputs never go in git. Fetch with scripts; see docs/SETUP.md.
-data/
-outputs/
+/data/
+/outputs/
 .env
 .venv/
 __pycache__/
