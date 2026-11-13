@@ -48,6 +48,7 @@ class Grid:
             "compress": "deflate",
             "predictor": 2 if dtype.startswith(("int", "uint")) else 3,
             "tiled": True,
+            "interleave": "band",  # bands are written one at a time; pixel interleave bloats the file
             "blockxsize": 256,
             "blockysize": 256,
             "BIGTIFF": "IF_SAFER",
