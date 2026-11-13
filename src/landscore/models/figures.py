@@ -11,14 +11,16 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from landscore.config import REPO_ROOT  # noqa: E402
 from landscore.models import evaluate as ev  # noqa: E402
 from landscore.models.zoo import fresh, model_specs  # noqa: E402
 
-FIG_DIR = REPO_ROOT / "docs" / "figures"
+DOCS_DIR = Path("docs")
+FIG_DIR = DOCS_DIR / "figures"
 
 
-def write_figures(df, res, oof, headline, best, seed, shap=True) -> dict[str, str]:
+def write_figures(df, res, oof, headline, best, seed, docs_dir: Path, shap=True) -> dict[str, str]:
+    global FIG_DIR, DOCS_DIR
+    DOCS_DIR, FIG_DIR = Path(docs_dir), Path(docs_dir) / "figures"
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     figs = {"comparison": _comparison(res), "calibration": _calibration(df, oof, headline)}
     if shap:
@@ -33,7 +35,7 @@ def _save(fig, name: str) -> str:
     path = FIG_DIR / name
     fig.savefig(path, dpi=130, bbox_inches="tight")
     plt.close(fig)
-    return Path(path).relative_to(REPO_ROOT / "docs").as_posix()
+    return Path(path).relative_to(DOCS_DIR).as_posix()
 
 
 def _comparison(res: pd.DataFrame) -> str:

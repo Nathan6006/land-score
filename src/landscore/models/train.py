@@ -98,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="landscore train")
     p.add_argument("--counties", nargs="*", help="limit to these counties (default: all built)")
     p.add_argument("--no-shap", action="store_true")
+    p.add_argument(
+        "--docs-dir", type=Path, default=REPO_ROOT / "docs", help="where RESULTS.md goes"
+    )
     a = p.parse_args(argv)
     cfg = load_config()
     seed = cfg["sampling"]["seed"]
@@ -113,10 +116,10 @@ def main(argv: list[str] | None = None) -> int:
     model_path = fit_final(df, seed, best, out)
     from landscore.models.figures import write_figures
 
-    figs = write_figures(df, res, oof, headline, best, seed, shap=not a.no_shap)
+    figs = write_figures(df, res, oof, headline, best, seed, a.docs_dir, shap=not a.no_shap)
     from landscore.models.results_md import write_results
 
-    write_results(df, res, headline, best, figs, REPO_ROOT / "docs" / "RESULTS.md")
+    write_results(df, res, headline, best, figs, a.docs_dir / "RESULTS.md")
     (out / "summary.json").write_text(
         json.dumps({"headline": headline, "best": best, "model": str(model_path)}, indent=2)
     )
