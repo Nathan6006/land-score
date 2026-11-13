@@ -120,3 +120,21 @@ Newest at the bottom.
 
 - GitHub branch protection is unavailable for private repos on the free plan. "No direct
   commits to main" is a convention enforced by habit and CI, not by GitHub.
+
+## 2026-11-13 — All nine counties built; edge-noise filter left as an open choice
+
+- **Done:** Cuyahoga, Lorain, Ashtabula, Lake, Portage, Summit, Trumbull, Medina added to
+  Geauga. 49,563 labeled pixels. Leave-one-county-out is now the headline validation.
+- **Found (docs/SENSITIVITY.md):** keeping only labeled patches of 4+ pixels raises
+  county-holdout AUC for random forest from 0.671 to 0.706 (9+ pixels: 0.717), with 21,151
+  pixels left. Pixels not touching forest still give 0.681. Single-pixel labels look like
+  mapping noise, and the signal is not only a forest-edge artifact.
+- **Not changed yet:** the shipped model still trains on all labeled pixels. Adopting a
+  minimum patch size after seeing test scores is a form of tuning, so it should be a
+  deliberate choice by Nathan and Karan (and ideally justified by looking at imagery of a
+  sample of single-pixel labels), not something slipped in.
+- **Lag and threshold:** 15-year lag with a 40% threshold stays. It is the most balanced
+  (48% positive); a 10-year lag gives more pixels (56,390) but only 35% positive at 40%.
+- **Binary vs regression:** binary is used for the score. Regression under county holdout is
+  weak (random forest R² 0.13), while the binary ranking is more stable across counties
+  (AUC 0.65–0.70 in every held-out county).

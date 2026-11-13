@@ -76,7 +76,7 @@ def _calibration(df, oof, headline) -> str:
     return _save(fig, "calibration.png")
 
 
-def _shap(df, best, seed, n=3000) -> str:
+def _shap(df, best, seed, n=1500) -> str:
     import shap
 
     spec = next(s for s in model_specs(list(df.columns)) if s.name == best)
