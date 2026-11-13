@@ -1,0 +1,14 @@
+# Data and outputs never go in git. Fetch with scripts; see docs/SETUP.md.
+data/
+outputs/
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.DS_Store
+*.egg-info/
+dist/
+build/

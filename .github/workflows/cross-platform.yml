@@ -1,0 +1,23 @@
+# macOS and Windows runners cost 10x / 2x Linux minutes on private repos, so this runs
+# only on demand (Actions tab -> cross-platform -> Run workflow) and weekly.
+name: cross-platform
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run python -c "import rasterio, geopandas, shap, sklearn; print(rasterio.__gdal_version__)"
+      - run: uv run pytest

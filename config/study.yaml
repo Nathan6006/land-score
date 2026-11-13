@@ -1,0 +1,61 @@
+# Land Score study configuration. One file for study area, years, and label definitions.
+# Change values here, never hard-code them in pipeline code. Every change to a label
+# definition must be logged in docs/DECISIONS.md.
+
+study_area:
+  # County FIPS codes (state 39 = Ohio). Order = expansion order.
+  pilot: [Geauga]
+  counties:
+    Geauga: "39055"
+    Cuyahoga: "39035"
+    Lorain: "39093"
+    Ashtabula: "39007"
+    Lake: "39085"
+    Portage: "39133"
+    Summit: "39153"
+    Trumbull: "39155"
+    Medina: "39103"
+  # Analysis grid: Annual NLCD / USFS TCC native grid (CONUS Albers, 30 m).
+  crs: "EPSG:5070"
+  resolution: 30
+  # Buffer (m) added around each county so landscape features near the edge are correct.
+  buffer_m: 1000
+
+years:
+  landcover: [1985, 2024]   # Annual NLCD Collection 1
+  canopy: [1985, 2023]      # USFS TCC "Science" annual product
+
+labels:
+  # Annual NLCD classes treated as farmed: 81 pasture/hay, 82 cultivated crops.
+  farm_classes: [81, 82]
+  # Classes that mean the land was converted by people rather than abandoned.
+  # 11 open water, 21-24 developed. Pixels that enter these before the outcome year are dropped.
+  converted_classes: [11, 21, 22, 23, 24]
+  # Forest classes (used for landscape features, not labels): 41 deciduous, 42 evergreen, 43 mixed.
+  forest_classes: [41, 42, 43]
+  # Abandonment year A = first year with no farming after a farmed run.
+  # A must fall in this window (inclusive).
+  abandon_window: [1990, 2005]
+  # Years farmed in a row just before A.
+  min_farm_years: 3
+  # Years not farmed in a row starting at A (filters out crop/pasture rotation noise).
+  # Pixels farmed again before the outcome year are dropped (a person cleared the regrowth).
+  min_fallow_years: 3
+  # Canopy outcome is measured this many years after A.
+  outcome_lag: 15
+  # Canopy at year A-1 must be at most this (the pixel really was open field).
+  max_start_canopy: 10
+  # Binary target: canopy at outcome year >= this percent.
+  binary_threshold: 30
+
+sampling:
+  n_pixels: 200000
+  seed: 42
+  # Minimum distance (pixels) between sampled pixels to limit spatial autocorrelation. 0 = off.
+  min_spacing_px: 0
+
+validation:
+  # Spatial blocks used for the pilot (single county) and for the random-vs-block comparison.
+  block_size_m: 5000
+  n_folds: 5
+  seed: 42
