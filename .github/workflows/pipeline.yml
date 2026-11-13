@@ -1,0 +1,59 @@
+# Runs the real data pipeline on a GitHub-hosted Linux runner (14 GB disk, 16 GB RAM) and
+# uploads the label counts, figures, results, and example reports as a build artifact.
+# Manual only: Actions tab -> pipeline -> Run workflow. Uses free Linux minutes.
+name: pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      counties:
+        description: "Counties (space separated)"
+        default: "Geauga"
+      stages:
+        description: "Stages to run (space separated: fetch quicklook labels features train report)"
+        default: "fetch quicklook labels features train report"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Restore fetched data
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-${{ hashFiles('src/landscore/data/sources.py', 'src/landscore/data/fetch.py', 'config/study.yaml') }}-${{ inputs.counties }}
+      - name: Run stages
+        env:
+          COUNTIES: ${{ inputs.counties }}
+          STAGES: ${{ inputs.stages }}
+        run: |
+          set -euo pipefail
+          df -h .
+          for s in $STAGES; do
+            case "$s" in
+              fetch|quicklook|labels|features) /usr/bin/time -v uv run landscore "$s" --county $COUNTIES 2> >(tee -a time.log >&2) ;;
+              train) /usr/bin/time -v uv run landscore train 2> >(tee -a time.log >&2) ;;
+              report) ls examples/*.geojson >/dev/null 2>&1 && uv run landscore report examples/*.geojson || echo "no examples" ;;
+            esac
+          done
+          grep -E "Maximum resident|Elapsed" time.log || true
+          du -sh data/* || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-${{ github.run_id }}
+          path: |
+            outputs/
+            docs/RESULTS.md
+            docs/figures/
+            data/manifest.json
+            data/derived/*/label_counts.json
+            data/derived/*/training.parquet
+            time.log
+          if-no-files-found: warn

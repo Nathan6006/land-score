@@ -94,6 +94,10 @@ def test_pipeline_end_to_end(tmp_path, monkeypatch):
     from landscore.report.plot_report import main as report_main
 
     assert labels_main(["--county", "Geauga", "Lake"]) == 0
+    from landscore.data.quicklook import main as quicklook_main
+
+    assert quicklook_main(["--county", "Geauga"]) == 0
+    assert (tmp_path / "outputs" / "quicklook" / "Geauga_landcover.png").exists()
     counts = json.loads((root / "derived" / "Geauga" / "label_counts.json").read_text())
     assert counts["labeled"] > 500 and counts["positive"] > 50 and counts["negative"] > 50
 
